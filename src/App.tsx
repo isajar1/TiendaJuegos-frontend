@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react'
 type User = { id: number; nombre: string; correo: string; rol: string }
 type AuthResponse = User & { token: string }
 type AuthMode = 'login' | 'register'
+type Juego = { id: number; titulo: string; precio: number; region: string; plataforma: string; disponible: boolean }
 
 const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 const SESSION_KEY = 'tienda-juegos.session'
@@ -82,6 +83,9 @@ function App() {
   const [errors, setErrors] = useState<Partial<Record<'login' | 'register', string>>>({})
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [transitioning, setTransitioning] = useState(false)
+  const [catalogo, setCatalogo] = useState<Juego[] | null>(null)
+  const [cargandoCatalogo, setCargandoCatalogo] = useState(false)
+  const [errorCatalogo, setErrorCatalogo] = useState('')
 
   const changeMode = (next: AuthMode) => {
     if (next === mode || transitioning) return
@@ -129,7 +133,27 @@ function App() {
     setSession(null)
     setLogin({ correo: '', contrasena: '' })
     setRegister({ nombre: '', correo: '', contrasena: '' })
+    setCatalogo(null)
+    setErrorCatalogo('')
     changeMode('login')
+  }
+
+  const cargarCatalogo = async () => {
+    if (!session) return
+    setCargandoCatalogo(true)
+    setErrorCatalogo('')
+    try {
+      const response = await fetch(`${API_URL}/api/juegos`, {
+        headers: { Authorization: `Bearer ${session.token}` },
+      })
+      if (!response.ok) throw new Error('No se pudo cargar el catálogo.')
+      const datos = (await response.json()) as Juego[]
+      setCatalogo(datos)
+    } catch (error) {
+      setErrorCatalogo(error instanceof Error ? error.message : 'No se pudo cargar el catálogo.')
+    } finally {
+      setCargandoCatalogo(false)
+    }
   }
 
   return (
@@ -145,7 +169,28 @@ function App() {
           <p className="eyebrow">SESIÓN ACTIVA</p>
           <h1>¡Qué bueno verte, {session.nombre}!</h1>
           <p className="welcome-copy">Has iniciado sesión como <strong>{session.correo}</strong>.</p>
-          <button className="text-button" type="button" onClick={logout}>Cerrar sesión</button>
+          <button className="primary-button" type="button" onClick={() => void cargarCatalogo()} disabled={cargandoCatalogo}>
+            {cargandoCatalogo ? 'Cargando…' : 'Ver catálogo'}
+          </button>
+          <p className="switch-prompt"><button className="text-button" type="button" onClick={logout}>Cerrar sesión</button></p>
+          {errorCatalogo && <p className="form-error" role="alert">{errorCatalogo}</p>}
+          {catalogo && (
+            <section className="catalogo" aria-label="Catálogo de juegos">
+              <h2>Catálogo</h2>
+              {catalogo.length === 0 ? <p>No hay juegos disponibles.</p> : (
+                <ul>
+                  {catalogo.map((juego) => (
+                    <li key={juego.id}>
+                      <strong>{juego.titulo}</strong>
+                      <span>{juego.plataforma} · {juego.region}</span>
+                      <span>${juego.precio.toFixed(2)}</span>
+                      <span>{juego.disponible ? 'Disponible' : 'Sin claves'}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
         </section>
       ) : (
         <div className="auth-layout">

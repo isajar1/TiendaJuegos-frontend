@@ -8,6 +8,6 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: /iniciar sesión/i })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: /crear cuenta/i })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /regístrate/i }))
-    expect(screen.getByRole('heading', { name: /crear cuenta/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /crear cuenta/i })).toBeInTheDocument()
   })
 })

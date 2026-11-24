@@ -112,3 +112,10 @@ h1, h2 { margin: 0; color: #332727; font: 600 26px 'Space Grotesk', sans-serif; 
   .page-footer { padding-top: 22px; font-size: 8px; letter-spacing: .13em; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+.catalogo { margin-top: 22px; text-align: left; }
+.catalogo h2 { margin-bottom: 10px; font-size: 18px; }
+.catalogo ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; max-height: 260px; overflow-y: auto; }
+.catalogo li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; border: 1px solid #e4d9d0; border-radius: 10px; padding: 10px 12px; font-size: 12px; color: #6a5d59; }
+.catalogo li strong { grid-column: 1 / -1; color: #332727; font-size: 13px; }
+.catalogo li span:last-child { color: #087f87; font-weight: 600; }
