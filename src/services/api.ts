@@ -133,6 +133,8 @@ export const aplicarCupon = (codigo: string) =>
 export const pagar = (aprobar = true) =>
   request<Orden>('/api/checkout/pagar', { method: 'POST', body: { aprobar } })
 
+export const eliminarMiCuenta = () => request<null>('/api/usuarios/mi-cuenta', { method: 'DELETE' })
+
 export const listarMisOrdenes = () => request<Orden[]>('/api/ordenes/mias')
 export const obtenerMiOrden = (id: number) => request<Orden>(`/api/ordenes/mias/${id}`)
 export const listarOrdenes = () => request<Orden[]>('/api/ordenes')

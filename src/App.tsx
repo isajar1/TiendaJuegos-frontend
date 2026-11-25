@@ -6,6 +6,7 @@ import AuthScreen from './features/auth/AuthScreen'
 import CartScreen from './features/cart/CartScreen'
 import CatalogScreen from './features/catalog/CatalogScreen'
 import HistoryScreen from './features/history/HistoryScreen'
+import ProfileScreen from './features/profile/ProfileScreen'
 import GameDetail from './features/reviews/GameDetail'
 import WishlistScreen from './features/wishlist/WishlistScreen'
 import {
@@ -58,6 +59,11 @@ export default function App() {
     setError('')
     setMensaje('')
   }, [])
+
+  const cuentaEliminada = () => {
+    cerrarSesion()
+    setMensaje('Tu cuenta se eliminó correctamente. Tu historial se conserva de forma anónima.')
+  }
 
   const resolverFallo = useCallback(
     (fallo: unknown, porDefecto: string, destino: (texto: string) => void) => {
@@ -120,7 +126,7 @@ export default function App() {
   }
 
   const navegar = (siguiente: Vista) => {
-    const protegida = siguiente === 'carrito' || siguiente === 'deseos' || siguiente === 'historial' || siguiente === 'admin'
+    const protegida = siguiente === 'carrito' || siguiente === 'deseos' || siguiente === 'historial' || siguiente === 'admin' || siguiente === 'perfil'
     if (protegida && !sesion) {
       irAuth()
       return
@@ -246,7 +252,7 @@ export default function App() {
   }
 
   if (enAuth) {
-    return <AuthScreen onAutenticado={autenticado} onVerCatalogo={verCatalogo} />
+    return <AuthScreen onAutenticado={autenticado} onVerCatalogo={verCatalogo} mensaje={mensaje} />
   }
 
   return (
@@ -314,6 +320,13 @@ export default function App() {
         />
       )}
       {vista === 'admin' && sesion?.rol.toLowerCase() === 'admin' && <AdminScreen />}
+      {vista === 'perfil' && sesion && (
+        <ProfileScreen
+          sesion={sesion}
+          onLogout={cerrarSesion}
+          onCuentaEliminada={cuentaEliminada}
+        />
+      )}
     </Shell>
   )
 }

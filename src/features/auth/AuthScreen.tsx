@@ -8,9 +8,10 @@ type AuthMode = 'login' | 'register'
 type Props = {
   onAutenticado: (sesion: Sesion) => void
   onVerCatalogo: () => void
+  mensaje?: string
 }
 
-export default function AuthScreen({ onAutenticado, onVerCatalogo }: Props) {
+export default function AuthScreen({ onAutenticado, onVerCatalogo, mensaje = '' }: Props) {
   const [mode, setMode] = useState<AuthMode>('login')
   const [busy, setBusy] = useState<AuthMode | null>(null)
   const [login, setLogin] = useState({ correo: '', contrasena: '' })
@@ -82,6 +83,7 @@ export default function AuthScreen({ onAutenticado, onVerCatalogo }: Props) {
         <span>TIENDA <span className="brand-light">JUEGOS</span></span>
       </header>
       <p className="page-intro">Tu próxima aventura empieza aquí.</p>
+      <Aviso tipo="exito" mensaje={mensaje} />
 
       <div className="auth-layout">
         {mode === 'login' ? (

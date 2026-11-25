@@ -230,6 +230,7 @@ function instalarFetch() {
       deseos = []
       return respuesta(deseos)
     }
+    if (ruta === '/api/usuarios/mi-cuenta' && method === 'DELETE') return respuesta(undefined, 204)
     if (ruta === '/api/reportes/ventas-juegos') return respuesta(VENTAS)
     if (ruta === '/api/reportes/compras-clientes') return respuesta(CLIENTES)
     return respuesta({ message: 'Ruta no simulada' }, 404)
@@ -411,5 +412,52 @@ describe('App: flujos completos', () => {
     fireEvent.click(screen.getByRole('button', { name: /cerrar sesión/i }))
     expect(await screen.findByRole('heading', { name: /iniciar sesión/i })).toBeInTheDocument()
     expect(localStorage.getItem(CLAVE_SESION)).toBeNull()
+  })
+
+  it('abre el perfil desde el icono y cierra sesión desde allí', async () => {
+    establecerSesion()
+    render(<App />)
+    expect(await screen.findByRole('heading', { name: /catálogo de juegos/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /perfil y configuración/i }))
+    expect(await screen.findByRole('heading', { name: /mi perfil y configuración/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar sesión de mi cuenta' }))
+    expect(await screen.findByRole('heading', { name: /iniciar sesión/i })).toBeInTheDocument()
+    expect(localStorage.getItem(CLAVE_SESION)).toBeNull()
+  })
+
+  it('elimina la cuenta solo después de confirmarlo', async () => {
+    establecerSesion()
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: /perfil y configuración/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar mi cuenta' }))
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+    expect(llamadas.some((llamada) => llamada.url === '/api/usuarios/mi-cuenta')).toBe(false)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar mi cuenta' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar eliminación' }))
+    await waitFor(() =>
+      expect(
+        llamadas.some(
+          (llamada) => llamada.url === '/api/usuarios/mi-cuenta' && llamada.method === 'DELETE',
+        ),
+      ).toBe(true),
+    )
+    expect(await screen.findByRole('heading', { name: /iniciar sesión/i })).toBeInTheDocument()
+    expect(await screen.findByText(/tu cuenta se eliminó correctamente/i)).toBeInTheDocument()
+    expect(localStorage.getItem(CLAVE_SESION)).toBeNull()
+  })
+
+  it('mantiene la sesión si falla la eliminación de la cuenta', async () => {
+    establecerSesion()
+    instalarFetch()
+    vi.stubGlobal('fetch', vi.fn(async () => respuesta({ message: 'No se pudo eliminar la cuenta.' }, 500)))
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: /perfil y configuración/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar mi cuenta' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar eliminación' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo eliminar la cuenta.')
+    expect(localStorage.getItem(CLAVE_SESION)).not.toBeNull()
   })
 })

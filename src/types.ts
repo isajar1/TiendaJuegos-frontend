@@ -94,7 +94,7 @@ export type ReporteCliente = {
   total: number
 }
 
-export type Vista = 'catalogo' | 'detalle' | 'carrito' | 'deseos' | 'historial' | 'admin'
+export type Vista = 'catalogo' | 'detalle' | 'carrito' | 'deseos' | 'historial' | 'admin' | 'perfil'
 
 export type JuegoForm = {
   titulo: string

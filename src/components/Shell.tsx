@@ -44,6 +44,15 @@ export default function Shell({
           {sesion ? (
             <>
               <span className="user-chip"><span aria-hidden="true">◉</span> {sesion.nombre}</span>
+              <button
+                className="icon-button"
+                type="button"
+                onClick={() => onNavegar('perfil')}
+                aria-label="Perfil y configuración"
+                title="Perfil y configuración"
+              >
+                <span aria-hidden="true">⚙</span>
+              </button>
               <button className="text-button" type="button" onClick={onLogout}>Cerrar sesión</button>
             </>
           ) : (
