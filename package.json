@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "tests:e2e": "playwright test -c playwright.aceptacion.config.ts"
   },
   "dependencies": {
     "react": "^19.3.1",
