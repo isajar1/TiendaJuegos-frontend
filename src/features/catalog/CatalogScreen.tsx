@@ -73,6 +73,18 @@ export default function CatalogScreen({
     setFiltros({ ...borrador })
   }
 
+  const cambiarCategoria = (categoria: string) => {
+    const siguiente = { ...borrador, categoria }
+    setBorrador(siguiente)
+    setFiltros(siguiente)
+  }
+
+  const cambiarPlataforma = (plataforma: string) => {
+    const siguiente = { ...borrador, plataforma }
+    setBorrador(siguiente)
+    setFiltros(siguiente)
+  }
+
   const limpiar = () => {
     setBorrador(FILTROS_VACIOS)
     setFiltros(FILTROS_VACIOS)
@@ -103,7 +115,7 @@ export default function CatalogScreen({
             id="filtro-categoria"
             label="Categoría"
             value={borrador.categoria}
-            onChange={(categoria) => setBorrador({ ...borrador, categoria })}
+            onChange={cambiarCategoria}
           >
             <option value="">Todas</option>
             {categorias.map((categoria) => (
@@ -114,7 +126,7 @@ export default function CatalogScreen({
             id="filtro-plataforma"
             label="Plataforma"
             value={borrador.plataforma}
-            onChange={(plataforma) => setBorrador({ ...borrador, plataforma })}
+            onChange={cambiarPlataforma}
           >
             <option value="">Todas</option>
             {plataformas.map((plataforma) => (
