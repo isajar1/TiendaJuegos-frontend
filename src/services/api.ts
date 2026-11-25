@@ -1,5 +1,7 @@
 import { leerSesion } from '../utils/session'
 import type {
+  AdminCreado,
+  AdminForm,
   Carrito,
   CatalogoFiltros,
   Categoria,
@@ -114,6 +116,9 @@ export const crearCategoria = (nombre: string) =>
 export const listarPlataformas = () => request<Plataforma[]>('/api/plataformas')
 export const crearPlataforma = (nombre: string) =>
   request<Plataforma>('/api/plataformas', { method: 'POST', body: { nombre } })
+
+export const crearAdministrador = (admin: AdminForm) =>
+  request<AdminCreado>('/api/admin/usuarios/administradores', { method: 'POST', body: admin })
 
 export const listarCupones = () => request<Cupon[]>('/api/cupones')
 export const crearCupon = (cupon: CuponForm) =>

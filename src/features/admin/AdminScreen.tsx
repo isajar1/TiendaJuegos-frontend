@@ -5,6 +5,7 @@ import {
   actualizarJuego,
   cambiarEstadoOrden,
   cargarClaves,
+  crearAdministrador,
   crearCupon,
   crearJuego,
   desactivarJuego,
@@ -17,6 +18,7 @@ import {
   reporteVentas,
 } from '../../services/api'
 import type {
+  AdminForm,
   CatalogoFiltros,
   Categoria,
   Cupon,
@@ -30,7 +32,7 @@ import type {
 } from '../../types'
 import { formatearDinero, formatearFecha, hoyISO } from '../../utils/session'
 
-type Tab = 'juegos' | 'cupones' | 'ordenes' | 'reportes'
+type Tab = 'juegos' | 'cupones' | 'ordenes' | 'reportes' | 'usuarios'
 const FILTROS_VACIOS: CatalogoFiltros = { q: '', categoria: '', plataforma: '', region: '' }
 const JUEGO_VACIO: JuegoForm = {
   titulo: '',
@@ -41,6 +43,7 @@ const JUEGO_VACIO: JuegoForm = {
   categoriaId: '',
 }
 const CUPON_VACIO: CuponForm = { codigo: '', porcentajeDescuento: '', fechaExpiracion: '' }
+const ADMIN_VACIO: AdminForm = { nombre: '', correo: '', contrasena: '' }
 
 export default function AdminScreen() {
   const [tab, setTab] = useState<Tab>('juegos')
@@ -54,6 +57,7 @@ export default function AdminScreen() {
   const [juegoClaves, setJuegoClaves] = useState('')
   const [clavesTexto, setClavesTexto] = useState('')
   const [cuponForm, setCuponForm] = useState<CuponForm>(CUPON_VACIO)
+  const [adminForm, setAdminForm] = useState<AdminForm>(ADMIN_VACIO)
   const [desde, setDesde] = useState(hoyISO())
   const [hasta, setHasta] = useState(hoyISO())
   const [ventas, setVentas] = useState<ReporteVenta[]>([])
@@ -91,7 +95,7 @@ export default function AdminScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const ejecutar = async (accion: () => Promise<unknown>, exito: string) => {
+  const ejecutar = async (accion: () => Promise<unknown>, exito: string): Promise<boolean> => {
     setProcesando(true)
     setError('')
     setMensaje('')
@@ -99,8 +103,10 @@ export default function AdminScreen() {
       await accion()
       setMensaje(exito)
       cargarDatos()
+      return true
     } catch (fallo) {
       setError(fallo instanceof Error ? fallo.message : 'No se pudo completar la operación.')
+      return false
     } finally {
       setProcesando(false)
     }
@@ -110,9 +116,11 @@ export default function AdminScreen() {
     evento.preventDefault()
     const accion = () =>
       editando === null ? crearJuego(juegoForm) : actualizarJuego(editando, juegoForm)
-    void ejecutar(accion, editando === null ? 'Juego creado correctamente.' : 'Juego actualizado.').then(() => {
-      setJuegoForm(JUEGO_VACIO)
-      setEditando(null)
+    void ejecutar(accion, editando === null ? 'Juego creado correctamente.' : 'Juego actualizado.').then((ok) => {
+      if (ok) {
+        setJuegoForm(JUEGO_VACIO)
+        setEditando(null)
+      }
     })
   }
 
@@ -134,14 +142,23 @@ export default function AdminScreen() {
       setError('Selecciona un juego y escribe al menos una clave.')
       return
     }
-    void ejecutar(() => cargarClaves(Number(juegoClaves), claves), `${claves.length} clave(s) cargadas.`).then(() =>
-      setClavesTexto(''),
-    )
+    void ejecutar(() => cargarClaves(Number(juegoClaves), claves), `${claves.length} clave(s) cargadas.`).then((ok) => {
+      if (ok) setClavesTexto('')
+    })
   }
 
   const guardarCupon = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault()
-    void ejecutar(() => crearCupon(cuponForm), 'Cupón creado correctamente.').then(() => setCuponForm(CUPON_VACIO))
+    void ejecutar(() => crearCupon(cuponForm), 'Cupón creado correctamente.').then((ok) => {
+      if (ok) setCuponForm(CUPON_VACIO)
+    })
+  }
+
+  const guardarAdministrador = (evento: FormEvent<HTMLFormElement>) => {
+    evento.preventDefault()
+    void ejecutar(() => crearAdministrador(adminForm), 'Administrador creado. Ya puede iniciar sesión.').then((ok) => {
+      if (ok) setAdminForm(ADMIN_VACIO)
+    })
   }
 
   const generarReportes = () => {
@@ -166,6 +183,7 @@ export default function AdminScreen() {
     { id: 'cupones', etiqueta: 'Cupones' },
     { id: 'ordenes', etiqueta: 'Órdenes' },
     { id: 'reportes', etiqueta: 'Reportes' },
+    { id: 'usuarios', etiqueta: 'Usuarios' },
   ]
 
   return (
@@ -359,6 +377,23 @@ export default function AdminScreen() {
                   </ul>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {tab === 'usuarios' && !cargando && (
+          <div className="admin-grid">
+            <form className="admin-form" onSubmit={guardarAdministrador}>
+              <h2>Nuevo administrador</h2>
+              <p className="field-hint">Solo un administrador puede crear otro administrador.</p>
+              <Field id="admin-nombre" label="Nombre" value={adminForm.nombre} onChange={(nombre) => setAdminForm({ ...adminForm, nombre })} />
+              <Field id="admin-correo" label="Correo electrónico" type="email" value={adminForm.correo} onChange={(correo) => setAdminForm({ ...adminForm, correo })} />
+              <Field id="admin-contrasena" label="Contraseña" type="password" autoComplete="new-password" minLength={8} value={adminForm.contrasena} onChange={(contrasena) => setAdminForm({ ...adminForm, contrasena })} />
+              <button className="soft-button" type="submit" disabled={procesando}>Crear administrador</button>
+            </form>
+            <div className="admin-form">
+              <h2>Acceso de administración</h2>
+              <p className="field-hint">El nuevo administrador recibe los mismos permisos que tú y debe iniciar sesión con su contraseña.</p>
             </div>
           </div>
         )}

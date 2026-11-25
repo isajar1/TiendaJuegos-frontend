@@ -6,6 +6,19 @@ export type Sesion = {
   token: string
 }
 
+export type AdminCreado = {
+  id: number
+  nombre: string
+  correo: string
+  rol: string
+}
+
+export type AdminForm = {
+  nombre: string
+  correo: string
+  contrasena: string
+}
+
 export type Juego = {
   id: number
   titulo: string

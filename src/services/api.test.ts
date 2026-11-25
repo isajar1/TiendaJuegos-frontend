@@ -10,6 +10,7 @@ import {
   borrarResena,
   cambiarEstadoOrden,
   cargarClaves,
+  crearAdministrador,
   crearCategoria,
   crearCupon,
   crearJuego,
@@ -160,6 +161,17 @@ describe('servicio API', () => {
     await verificar(() => crearCategoria('Aventura'), 'POST', '/api/categorias')
     await verificar(() => listarPlataformas(), 'GET', '/api/plataformas', [])
     await verificar(() => crearPlataforma('PC'), 'POST', '/api/plataformas')
+  })
+
+  it('envía el alta de administrador a la ruta protegida', async () => {
+    cuerpo = { id: 3, nombre: 'Nuevo', correo: 'nuevo@mail.com', rol: 'admin' }
+    await verificar(
+      () => crearAdministrador({ nombre: 'Nuevo', correo: 'nuevo@mail.com', contrasena: 'password123' }),
+      'POST',
+      '/api/admin/usuarios/administradores',
+    )
+    expect(llamadas[0].body).toBe('{"nombre":"Nuevo","correo":"nuevo@mail.com","contrasena":"password123"}')
+    expect(llamadas[0].headers.Authorization).toContain('Bearer ')
   })
 
   it('expone las rutas de carrito, pago, cupones y órdenes', async () => {
